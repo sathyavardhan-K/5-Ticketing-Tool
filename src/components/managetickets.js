@@ -19,9 +19,15 @@ export default function ManageTeam() {
     console.log('Edit ticket with ID:', ticketId);
   };
 
-  const handleDeleteClick = (ticketId) => {
-    // Implement delete logic here
-    console.log('Delete ticket with ID:', ticketId);
+  const handleDeleteClick = async (ticketId) => {
+    try {
+      await domo.delete(`/domo/datastores/v1/collections/create_ticket/documents/${ticketId}`);
+      setTicketList(prevTicketList => prevTicketList.filter(ticket => ticket.id !== ticketId));
+      alert('Ticket deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting ticket:', error);
+      alert('Failed to delete ticket. Please try again.');
+    }
   };
 
   return (
