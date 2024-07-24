@@ -5,5 +5,34 @@
         "width": 3,
         "height": 3
     },
-    "mapping": []
+    "mapping": [],
+    "collections":[
+        {
+          "name": "create_team",
+          "schema":{
+            "columns": [
+              { "name": "Team Name", "type": "STRING" },
+              { "name": "Team Members", "type": "STRING" }
+            ]
+          },
+          "syncEnabled":true  
+        },
+        {
+            "name": "create_ticket",
+            "schema":{
+              "columns": [
+                { "name": "Team", "type": "STRING" },
+                { "name": "Ticket Name", "type": "STRING" },
+                { "name": "Ticket Details", "type": "STRING" }
+              ]
+            },
+            "syncEnabled":true  
+          }
+      ],
+
+    "fileName": "manifest.json",
+    "id": "ffc72a2b-b07e-4da0-b9eb-bc974c8a5cb8",
+    "proxyId": "b1be284a-80d9-4953-9c45-58f228fd7b55"
 }
+
+
