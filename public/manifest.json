@@ -29,6 +29,36 @@
             "syncEnabled":true  
           }
       ],
+    "workflowMapping": [
+        {
+          "alias": "send_email",
+          "modelId": null,
+          "version": null,
+          "parameters": [
+            {
+              "name": "to",
+              "aliasedName": "to",
+              "type": "text",
+              "list": false,
+              "children": []
+            },
+            {
+              "name": "subject",
+              "aliasedName": "sub",
+              "type": "text",
+              "list": false,
+              "children": []
+            },
+            {
+              "name": "body",
+              "aliasedName": "body",
+              "type": "text",
+              "list": false,
+              "children": []
+            }
+          ]
+        }
+      ],
 
     "fileName": "manifest.json",
     "id": "ffc72a2b-b07e-4da0-b9eb-bc974c8a5cb8",

@@ -5,3 +5,17 @@
 body{
   background-color: lavenderblush;
 }
+
+
+/* Add this to your CSS file */
+.Toastify__toast-container {
+  margin-top: 120px; /* Adjust the top margin as needed */
+}
+
+.Toastify__toast--success {
+  background: #4caf50;
+}
+
+.Toastify__toast--error {
+  background: #f44336;
+}

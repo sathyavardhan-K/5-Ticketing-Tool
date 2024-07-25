@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import domo from 'ryuu.js'; // Adjust the import based on your setup
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-export default function ManageTeam() {
+export default function ManageTickets() {
   const [ticketList, setTicketList] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch all tickets data
@@ -14,24 +18,35 @@ export default function ManageTeam() {
       .catch(error => console.error('Error fetching tickets data:', error));
   }, []);
 
-  const handleEditClick = (ticketId) => {
-    // Implement edit logic here
-    console.log('Edit ticket with ID:', ticketId);
+  const handleEditClick = (ticket) => {
+    navigate('/', { state: { ticketData: ticket } });
   };
 
   const handleDeleteClick = async (ticketId) => {
     try {
       await domo.delete(`/domo/datastores/v1/collections/create_ticket/documents/${ticketId}`);
       setTicketList(prevTicketList => prevTicketList.filter(ticket => ticket.id !== ticketId));
-      alert('Ticket deleted successfully!');
+      toast.success('Ticket deleted successfully!');
     } catch (error) {
       console.error('Error deleting ticket:', error);
-      alert('Failed to delete ticket. Please try again.');
+      toast.error('Failed to delete ticket. Please try again.');
     }
   };
 
   return (
     <div className="w-full max-w-4xl mx-auto mt-20 bg-white shadow-lg rounded-lg p-6">
+      <ToastContainer
+        position="bottom-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <h1 className="text-xl font-bold text-gray-800 mb-4">Manage Tickets</h1>
 
       <div className="max-h-80 overflow-y-auto">
@@ -55,7 +70,7 @@ export default function ManageTeam() {
                   <td className="px-6 py-4 text-sm text-gray-500">{ticket.content['Ticket Details']}</td>
                   <td className="px-6 py-4 text-sm text-gray-500 flex space-x-2">
                     <button
-                      onClick={() => handleEditClick(ticket.id)}
+                      onClick={() => handleEditClick(ticket)}
                       className="bg-blue-500 text-white rounded-full px-4 py-2 hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
                     >
                       Edit
