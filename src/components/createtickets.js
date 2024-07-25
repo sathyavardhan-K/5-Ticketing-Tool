@@ -102,7 +102,9 @@ export default function CreateTickets() {
     // Fetch the current user's display name
     domo.get('/domo/users/v1?includeDetails=true&limit=1')
       .then(() => {
-        const currentUser = domo.env;
+        const currentUser = (domo.env).userId;
+        console.log('currentuser',currentUser);
+        
         return domo.get(`/domo/users/v1/${currentUser}?includeDetails=true`);
       })
       .then(data => {
