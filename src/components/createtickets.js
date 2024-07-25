@@ -12,6 +12,7 @@ export default function CreateTickets() {
   const [existingTickets, setExistingTickets] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedMembers, setSelectedMembers] = useState([]);
+  const [requestorName, setRequestorName] = useState('')
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,7 +27,7 @@ export default function CreateTickets() {
         if (Array.isArray(data)) {
           setTeamList(data);
         } else {
-          console.error('Unexpected data structure:', data);
+          console.error('Unexpected data structure for teams:', data);
         }
       })
       .catch(error => console.error('Error fetching teams data:', error));
@@ -38,7 +39,7 @@ export default function CreateTickets() {
         if (Array.isArray(data)) {
           setExistingTickets(data.map(ticket => ticket.content['Ticket Name']));
         } else {
-          console.error('Unexpected data structure:', data);
+          console.error('Unexpected data structure for tickets:', data);
         }
       })
       .catch(error => console.error('Error fetching tickets data:', error));
@@ -50,34 +51,37 @@ export default function CreateTickets() {
       setTicketName(ticketData.content['Ticket Name']);
       setTicketDetails(ticketData.content['Ticket Details']);
     }
+
   }, [ticketData]);
 
   const fetchTeamMembersEmails = (teamName) => {
     domo.get('/domo/datastores/v1/collections/create_team/documents')
       .then(data => {
-        console.log('Fetched Team Data:', data); 
-        
+        console.log('Fetched TeaData:', data);
+
         // Ensure the data is an array
         if (!Array.isArray(data)) {
           console.error('Expected an array but received:', data);
           return;
         }
-        
+
         // Log the team name we are searching for
         console.log('Searching for team:', teamName);
 
         // Find the team object that matches the selected team name
-        const team = data.find(item => item.content && item.content['Team Name'] === teamName);
-    
+        const team = data.find(item => 
+          item.content && item.content['Team Name'] === teamName
+        );
+
         console.log('Found Team:', team);
-    
+
         if (team) {
           // Check if 'Team Members' is an array and each member has an 'Email' property
           const teamMembers = team.content['Team Members'];
           console.log('Team Members:', teamMembers);
           
           const emails = teamMembers && Array.isArray(teamMembers)
-            ? teamMembers.map(member => member['Email']).filter(email => email)
+            ? teamMembers.map(member => member['Member Email']).filter(email => email)
             : [];
           
           console.log('Extracted Emails:', emails); // Log the extracted emails
@@ -93,6 +97,21 @@ export default function CreateTickets() {
         setSelectedMembers([]);
       });
   };
+
+  useEffect(() => {
+    // Fetch the current user's display name
+    domo.get('/domo/users/v1?includeDetails=true&limit=1')
+      .then(() => {
+        const currentUser = domo.env;
+        return domo.get(`/domo/users/v1/${currentUser}?includeDetails=true`);
+      })
+      .then(data => {
+        console.log('Current User Data:', data);
+        setRequestorName(data.displayName);
+      })
+      .catch(error => console.error('Error fetching current user data:', error));
+  }, []);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -123,10 +142,12 @@ export default function CreateTickets() {
       if (!ticketData) { // Send email only for new ticket creation
         const subject = "New Ticket Created";
         const body = `
-          Requestor Name: [Your Name]
-          Ticket Name: ${ticketName}
-          Ticket Details: ${ticketDetails}
+          <p><span style="font-weight: bold; margin-bottom: 2px;">Requestor Name: </span> ${requestorName} </p>
+          <p><span style="font-weight: bold; margin-bottom: 2px;">Ticket Name: </span> ${ticketName} </p>
+          <p><span style="font-weight: bold; margin-bottom: 2px;">Ticket Details: </span> ${ticketDetails} </p>
+          <button type="button" style="font-weight: bold; margin-bottom: 2px;">View Ticket</button>
         `;
+
 
         console.log('Selected Members for Email:', selectedMembers); // Log selected members
 
@@ -158,7 +179,7 @@ export default function CreateTickets() {
     try {
       const response = await domo.post(`/domo/workflow/v1/models/send_email/start`, {
         to: to,
-        subject: subject,
+        sub: subject,
         body: body
       });
       console.log('Workflow started successfully:', response);
