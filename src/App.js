@@ -3,76 +3,39 @@ import './App.css';
 import domo from 'ryuu.js';
 import { BrowserRouter, Routes, Route, Link} from 'react-router-dom';
 
-
 import Createtickets from "./components/createtickets";
 import Manageteam from "./components/manageteam";
 import CreateTeam from "./components/createteam"; 
 import Managetickets from "./components/managetickets";
 
 
-
-
 function App() {
-  // const [usersData, setUsersData] = useState([]);
-  const [currentUserDisplayName, setCurrentUserDisplayName] = useState('');
-  // const [currentUserId, setCurrentUserId] = useState('');
-  const [avatarSrc, setAvatarSrc] = useState('');
-  // const [selectedOptions, setSelectedOptions] = useState([]);
-  // const [selectedIds, setSelectedIds] = useState([]);
 
-  // const emailToIdMap = {}; 
+  const [currentUserDisplayName, setCurrentUserDisplayName] = useState('');
+  const [avatarSrc, setAvatarSrc] = useState('');
+
 
   useEffect(() => {
-    // Fetch all users data
-    // domo.get('/domo/users/v1?includeDetails=true&limit=150')
-    //   .then(data => {
-    //     console.log('Users data:', data);
-    //     setUsersData(data);
-        
-    //     data.forEach(user => {
-    //       emailToIdMap[user.detail.email] = user.id;
-    //     });
-    //   })
-    //   .catch(error => console.error('Error fetching users data:', error));
 
-    // Fetch current user's details
     const currentUser = domo.env.userId;
     console.log('Current User ID:', currentUser);
-
-    // console.log('Domo object:', domo);
-    // const currentUser = domo.env?.userId;
-    // console.log('Current User ID:', currentUser);
 
     if (currentUser) {
       domo.get(`/domo/users/v1/${currentUser}?includeDetails=true`)
         .then(user => {
           console.log('Current user:', user);
+
           if (user) {
             setCurrentUserDisplayName(user.displayName);
-            // setCurrentUserId(user.id);
             setAvatarSrc(user.avatarKey);
           } else {
             console.error('User data is empty:', user);
           }
+
         })
         .catch(error => console.error('Error fetching current user:', error));
     }
   }, []);
-
-  // Handle select change
-  // const handleSelectChange = (selectedOptions) => {
-  //   setSelectedOptions(selectedOptions);
-  //   const ids = selectedOptions.map(option => emailToIdMap[option.value]);
-  //   setSelectedIds(ids);
-  //   console.log(ids);
-  // };
-
-  // Prepare options for react-select
-  // const options = usersData.map(user => ({ 
-  //   value: user.detail.email,
-  //   label: user.displayName,
-  //   id: user.id
-  // }));
 
   return (
  
@@ -117,39 +80,8 @@ function App() {
               </Routes>
             </div>
           </div>
-      </BrowserRouter>
-       
-      {/* <div className="w-full max-w-md mx-auto mt-20 bg-white shadow-lg rounded-lg">
-        <div className="px-6 py-4">
-          <div className="mb-4">
-            <h1 className="text-xl font-bold text-gray-800">Team Name</h1>
-            <input 
-              type="text" 
-              className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-indigo-600" 
-              placeholder="Enter team name" 
-            />
-          </div>
-          <div className="mb-4">
-            <h1 className="text-xl font-bold text-gray-800">People/Members</h1>
-            <Select
-              className="mt-2"
-              classNamePrefix="react-select"
-              options={options}
-              isMulti
-              placeholder="Select Users"
-              value={selectedOptions}
-              onChange={handleSelectChange}
-            />
-          </div>
-          <div className="flex justify-end">
-            <button className="bg-indigo-500 text-white rounded-full px-4 py-2 hover:bg-indigo-600 focus:outline-none focus:bg-indigo-600">Create Team</button>
-          </div>
-        </div>
-      </div>*/}
-      </div>
-
-
-
+      </BrowserRouter>      
+    </div>
   );
 }
 

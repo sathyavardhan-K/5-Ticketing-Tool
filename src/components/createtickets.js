@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import domo from 'ryuu.js'; // Adjust the import based on your setup
 import { ToastContainer, toast } from 'react-toastify';
+import Select from 'react-select';
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function CreateTickets() {
@@ -12,27 +13,28 @@ export default function CreateTickets() {
   const [existingTickets, setExistingTickets] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedMembers, setSelectedMembers] = useState([]);
-  const [requestorName, setRequestorName] = useState('')
+  const [requestorName, setRequestorName] = useState('');
 
   const navigate = useNavigate();
   const location = useLocation();
   const { ticketData } = location.state || {};
 
   useEffect(() => {
-    // Fetch the team list data
     domo.get('/domo/datastores/v1/collections/create_team/documents')
       .then(data => {
         console.log('Fetched Teams data:', data);
-        // Ensure the data is an array
         if (Array.isArray(data)) {
-          setTeamList(data);
+          const formattedTeams = data.map(teamItem => ({
+            value: teamItem.content['Team Name'],
+            label: `${teamItem.content['Team Name']} - ${teamItem.content['Team Members'].map(member => member['Member Name']).join(', ')}`
+          }));
+          setTeamList(formattedTeams);
         } else {
           console.error('Unexpected data structure for teams:', data);
         }
       })
       .catch(error => console.error('Error fetching teams data:', error));
 
-    // Fetch the existing tickets data
     domo.get('/domo/datastores/v1/collections/create_ticket/documents')
       .then(data => {
         console.log('Fetched Tickets data:', data);
@@ -51,24 +53,18 @@ export default function CreateTickets() {
       setTicketName(ticketData.content['Ticket Name']);
       setTicketDetails(ticketData.content['Ticket Details']);
     }
-
   }, [ticketData]);
 
   const fetchTeamMembersEmails = (teamName) => {
     domo.get('/domo/datastores/v1/collections/create_team/documents')
       .then(data => {
-        console.log('Fetched TeaData:', data);
-
-        // Ensure the data is an array
+        console.log('Fetched Team Data:', data);
         if (!Array.isArray(data)) {
           console.error('Expected an array but received:', data);
           return;
         }
 
-        // Log the team name we are searching for
         console.log('Searching for team:', teamName);
-
-        // Find the team object that matches the selected team name
         const team = data.find(item => 
           item.content && item.content['Team Name'] === teamName
         );
@@ -76,7 +72,6 @@ export default function CreateTickets() {
         console.log('Found Team:', team);
 
         if (team) {
-          // Check if 'Team Members' is an array and each member has an 'Email' property
           const teamMembers = team.content['Team Members'];
           console.log('Team Members:', teamMembers);
           
@@ -84,7 +79,7 @@ export default function CreateTickets() {
             ? teamMembers.map(member => member['Member Email']).filter(email => email)
             : [];
           
-          console.log('Extracted Emails:', emails); // Log the extracted emails
+          console.log('Extracted Emails:', emails);
           
           setSelectedMembers(emails);
         } else {
@@ -99,11 +94,10 @@ export default function CreateTickets() {
   };
 
   useEffect(() => {
-    // Fetch the current user's display name
     domo.get('/domo/users/v1?includeDetails=true&limit=1')
       .then(() => {
         const currentUser = (domo.env).userId;
-        console.log('currentuser',currentUser);
+        console.log('Current User ID:', currentUser);
         
         return domo.get(`/domo/users/v1/${currentUser}?includeDetails=true`);
       })
@@ -113,7 +107,6 @@ export default function CreateTickets() {
       })
       .catch(error => console.error('Error fetching current user data:', error));
   }, []);
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -139,9 +132,9 @@ export default function CreateTickets() {
         : domo.post(`/domo/datastores/v1/collections/create_ticket/documents/`, finalData);
 
       const response = await apiCall;
-      console.log('create_ticket_db_response', response);
+      console.log('Create Ticket DB Response:', response);
 
-      if (!ticketData) { // Send email only for new ticket creation
+      if (!ticketData) {
         const subject = "New Ticket Created";
         const body = `
           <p><span style="font-weight: bold; margin-bottom: 2px;">Requestor Name: </span> ${requestorName} </p>
@@ -150,8 +143,7 @@ export default function CreateTickets() {
           <button type="button" style="font-weight: bold; margin-bottom: 2px;">View Ticket</button>
         `;
 
-
-        console.log('Selected Members for Email:', selectedMembers); // Log selected members
+        console.log('Selected Members for Email:', selectedMembers);
 
         selectedMembers.forEach(email => {
           SendEmail(email, subject, body);
@@ -186,7 +178,6 @@ export default function CreateTickets() {
       });
       console.log('Workflow started successfully:', response);
     } catch (error) {
-      // Log detailed error information
       if (error.response) {
         console.error('Error response data:', error.response.data);
         console.error('Error response status:', error.response.status);
@@ -206,23 +197,18 @@ export default function CreateTickets() {
           <label className="block text-gray-700 font-bold mb-2" htmlFor="team">
             Team
           </label>
-          <select
+          <Select
             id="team"
-            value={team}
-            onChange={(e) => {
-              setTeam(e.target.value);
-              fetchTeamMembersEmails(e.target.value);
+            value={teamList.find(option => option.value === team) || null}
+            onChange={(selectedOption) => {
+              setTeam(selectedOption ? selectedOption.value : '');
+              fetchTeamMembersEmails(selectedOption ? selectedOption.value : '');
             }}
-            className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-indigo-600"
+            options={teamList}
+            placeholder="Select Team"
+            className="w-full mt-2"
             required
-          >
-            <option value="">Select Team</option>
-            {teamList.map((teamItem) => (
-              <option key={teamItem.id} value={teamItem.content['Team Name']}>
-                {teamItem.content['Team Name']} - {teamItem.content['Team Members'].map(member => member['Member Name']).join(', ')}
-              </option>
-            ))}
-          </select>
+          />
         </div>
         <div className="mb-4">
           <label className="block text-gray-700 font-bold mb-2" htmlFor="ticketName">
