@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import domo from 'ryuu.js'; // Adjust the import based on your setup
 import { ToastContainer, toast } from 'react-toastify';
+import Modal from './Modal'; // Import the Modal component
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function ManageTickets() {
   const [ticketList, setTicketList] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [ticketToDelete, setTicketToDelete] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,14 +25,23 @@ export default function ManageTickets() {
     navigate('/', { state: { ticketData: ticket } });
   };
 
-  const handleDeleteClick = async (ticketId) => {
+  const handleDeleteClick = (ticketId) => {
+    setTicketToDelete(ticketId);
+    setIsModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
     try {
-      await domo.delete(`/domo/datastores/v1/collections/create_ticket/documents/${ticketId}`);
-      setTicketList(prevTicketList => prevTicketList.filter(ticket => ticket.id !== ticketId));
+      await domo.delete(`/domo/datastores/v1/collections/create_ticket/documents/${ticketToDelete}`);
+      setTicketList(prevTicketList => prevTicketList.filter(ticket => ticket.id !== ticketToDelete));
       toast.success('Ticket deleted successfully!');
+      setIsModalOpen(false);
+      setTicketToDelete(null);
     } catch (error) {
       console.error('Error deleting ticket:', error);
       toast.error('Failed to delete ticket. Please try again.');
+      setIsModalOpen(false);
+      setTicketToDelete(null);
     }
   };
 
@@ -92,6 +104,12 @@ export default function ManageTickets() {
           </tbody>
         </table>
       </div>
+      
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

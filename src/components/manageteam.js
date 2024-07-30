@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import domo from 'ryuu.js'; // Adjust the import based on your setup
 import { ToastContainer, toast } from 'react-toastify';
+import Modal from './Modal'; // Import the Modal component
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function ManageTeam() {
   const [teamList, setTeamList] = useState([]);
   const [usersData, setUsersData] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [teamToDelete, setTeamToDelete] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -43,22 +46,28 @@ export default function ManageTeam() {
     navigate('/manageteam/createteam', { state: { teamData: team } });
   };
 
-  const handleDeleteClick = async (teamId) => {
+  const handleDeleteClick = (teamId) => {
+    setTeamToDelete(teamId);
+    setIsModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
     try {
-      await domo.delete(`/domo/datastores/v1/collections/create_team/documents/${teamId}`);
-      setTeamList(prevTeamList => prevTeamList.filter(team => team.id !== teamId));
-      alert('Team deleted successfully!');
+      await domo.delete(`/domo/datastores/v1/collections/create_team/documents/${teamToDelete}`);
+      setTeamList(prevTeamList => prevTeamList.filter(team => team.id !== teamToDelete));
+      toast.success('Team deleted successfully!');
+      setIsModalOpen(false);
+      setTeamToDelete(null);
     } catch (error) {
       console.error('Error deleting team:', error);
-      alert('Failed to delete team. Please try again.');
-      
-
+      toast.error('Failed to delete team. Please try again.');
+      setIsModalOpen(false);
+      setTeamToDelete(null);
     }
   };
 
   return (
     <div className="relative p-6">
-
       <ToastContainer
           position="bottom-center"  // Position notifications at the bottom center
           autoClose={5000}
@@ -72,7 +81,6 @@ export default function ManageTeam() {
           theme="light"
           className="mt-20"  // Additional margin to push the container down
       />
-
 
       {/* Button */}
       <button
@@ -139,6 +147,12 @@ export default function ManageTeam() {
           </table>
         </div>
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

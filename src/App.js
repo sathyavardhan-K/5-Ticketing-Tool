@@ -5,7 +5,7 @@ import { BrowserRouter, Routes, Route, Link} from 'react-router-dom';
 
 import Createtickets from "./components/createtickets";
 import Manageteam from "./components/manageteam";
-import CreateTeam from "./components/createteam"; 
+import CreateTeam from "./components/createteam";
 import Managetickets from "./components/managetickets";
 
 
@@ -13,7 +13,6 @@ function App() {
 
   const [currentUserDisplayName, setCurrentUserDisplayName] = useState('');
   const [avatarSrc, setAvatarSrc] = useState('');
-
 
   useEffect(() => {
 

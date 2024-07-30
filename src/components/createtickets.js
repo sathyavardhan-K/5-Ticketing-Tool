@@ -5,6 +5,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import Select from 'react-select';
 import 'react-toastify/dist/ReactToastify.css';
 
+
 export default function CreateTickets() {
   const [team, setTeam] = useState('');
   const [ticketName, setTicketName] = useState('');
@@ -19,6 +20,7 @@ export default function CreateTickets() {
   const location = useLocation();
   const { ticketData } = location.state || {};
 
+  
   useEffect(() => {
     domo.get('/domo/datastores/v1/collections/create_team/documents')
       .then(data => {
